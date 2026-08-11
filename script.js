@@ -1,6 +1,6 @@
 const heart = document.getElementById("heart");
 
-const text = "I love Mai❤️";
+const text = "Long ❤️ Hoài Thương";
 const total = 100;            // tổng lượng chữ
 
 // Phương trình hình trái tim
