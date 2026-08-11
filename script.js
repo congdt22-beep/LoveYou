@@ -6,8 +6,8 @@ const text = "Long ❤️ Hoài Thương";
 // THIẾT LẬP
 // ===============================
 
-const total = 100;
-const layers = 2;
+const total = 90;
+const layers = 1;
 const depth = 20;
 
 const words = [];
@@ -259,47 +259,58 @@ function animate() {
 animate();
 
 // ==========================================
-// ĐIỀU KHIỂN 3D BẰNG CHUỘT + ĐIỆN THOẠI
+// ĐIỀU KHIỂN 3D - PC + ĐIỆN THOẠI
 // ==========================================
 
 const scene = document.getElementById("scene");
 const rotator = document.getElementById("heart-rotator");
 
 
-// Góc ban đầu
+// ===============================
+// TRẠNG THÁI 3D
+// ===============================
+
 let rotationX = 15;
 let rotationY = -20;
 let rotationZ = 3;
 
-
-// Zoom
-let zoom = window.innerWidth <= 768 ? 0.82 : 0.72;
-
-
-// Chuột / ngón tay
-let dragging = false;
-
-let lastX = 0;
-let lastY = 0;
+let zoom =
+    window.innerWidth <= 768
+        ? 0.82
+        : 0.72;
 
 
-// ==========================================
-// CẬP NHẬT TRÁI TIM
-// ==========================================
+// ===============================
+// POINTER
+// ===============================
+
+const pointers = new Map();
+
+let lastSingleX = 0;
+let lastSingleY = 0;
+
+let previousDistance = null;
+
+let moved = false;
+
+
+// ===============================
+// CẬP NHẬT 3D
+// ===============================
 
 function updateHeartTransform() {
 
-    // Giới hạn góc nhìn lên xuống
+    // Giới hạn góc nhìn
     rotationX = Math.max(
-        -75,
-        Math.min(75, rotationX)
+        -80,
+        Math.min(80, rotationX)
     );
 
 
-    // Giới hạn zoom
+    // Zoom
     zoom = Math.max(
         0.35,
-        Math.min(1.5, zoom)
+        Math.min(1.6, zoom)
     );
 
 
@@ -312,69 +323,257 @@ function updateHeartTransform() {
 }
 
 
-// ==========================================
-// CHUỘT
-// ==========================================
-
-scene.addEventListener("pointerdown", (e) => {
-
-    dragging = true;
-
-    lastX = e.clientX;
-    lastY = e.clientY;
-
-    scene.setPointerCapture(e.pointerId);
-});
+// Hiển thị ngay góc ban đầu
+updateHeartTransform();
 
 
-scene.addEventListener("pointermove", (e) => {
+// ===============================
+// KHOẢNG CÁCH 2 NGÓN
+// ===============================
 
-    if (!dragging) return;
+function getDistance() {
 
+    const values =
+        [...pointers.values()];
+
+    if (values.length < 2) {
+        return null;
+    }
 
     const dx =
-        e.clientX - lastX;
+        values[0].x -
+        values[1].x;
 
     const dy =
-        e.clientY - lastY;
+        values[0].y -
+        values[1].y;
+
+    return Math.sqrt(
+        dx * dx +
+        dy * dy
+    );
+}
 
 
-    // Kéo ngang = xoay trái phải
-    rotationY += dx * 0.45;
+// ===============================
+// CHẠM / NHẤN
+// ===============================
+
+scene.addEventListener(
+    "pointerdown",
+    (e) => {
+
+        pointers.set(
+            e.pointerId,
+            {
+                x: e.clientX,
+                y: e.clientY
+            }
+        );
 
 
-    // Kéo dọc = nghiêng lên xuống
-    rotationX -= dy * 0.35;
+        moved = false;
 
 
-    lastX = e.clientX;
-    lastY = e.clientY;
+        // 1 ngón
+        if (pointers.size === 1) {
+
+            lastSingleX =
+                e.clientX;
+
+            lastSingleY =
+                e.clientY;
+        }
 
 
-    updateHeartTransform();
-});
+        // 2 ngón
+        if (pointers.size === 2) {
+
+            previousDistance =
+                getDistance();
+        }
 
 
-scene.addEventListener("pointerup", (e) => {
+        // Giữ pointer trên scene
+        try {
 
-    dragging = false;
+            scene.setPointerCapture(
+                e.pointerId
+            );
 
-    try {
-        scene.releasePointerCapture(e.pointerId);
-    } catch {}
-});
+        } catch {}
 
-
-scene.addEventListener("pointercancel", () => {
-
-    dragging = false;
-
-});
+    },
+    {
+        passive: true
+    }
+);
 
 
-// ==========================================
-// CUỘN CHUỘT = ZOOM
-// ==========================================
+// ===============================
+// KÉO / XOAY / ZOOM
+// ===============================
+
+scene.addEventListener(
+    "pointermove",
+    (e) => {
+
+        if (!pointers.has(e.pointerId)) {
+            return;
+        }
+
+
+        // Cập nhật vị trí
+        pointers.set(
+            e.pointerId,
+            {
+                x: e.clientX,
+                y: e.clientY
+            }
+        );
+
+
+        // =================================
+        // 1 NGÓN
+        // =================================
+
+        if (pointers.size === 1) {
+
+            const dx =
+                e.clientX -
+                lastSingleX;
+
+            const dy =
+                e.clientY -
+                lastSingleY;
+
+
+            // Nếu di chuyển đủ lớn
+            if (
+                Math.abs(dx) > 1 ||
+                Math.abs(dy) > 1
+            ) {
+
+                moved = true;
+            }
+
+
+            // Kéo ngang
+            // → xoay 360°
+            rotationY +=
+                dx * 0.45;
+
+
+            // Kéo dọc
+            // → nghiêng
+            rotationX -=
+                dy * 0.30;
+
+
+            lastSingleX =
+                e.clientX;
+
+            lastSingleY =
+                e.clientY;
+
+
+            updateHeartTransform();
+        }
+
+
+        // =================================
+        // 2 NGÓN
+        // =================================
+
+        if (pointers.size === 2) {
+
+            const distance =
+                getDistance();
+
+
+            if (
+                distance !== null &&
+                previousDistance !== null
+            ) {
+
+                const difference =
+                    distance -
+                    previousDistance;
+
+
+                // Pinch zoom
+                zoom +=
+                    difference * 0.003;
+
+
+                updateHeartTransform();
+            }
+
+
+            previousDistance =
+                distance;
+        }
+
+    },
+    {
+        passive: true
+    }
+);
+
+
+// ===============================
+// THẢ NGÓN
+// ===============================
+
+scene.addEventListener(
+    "pointerup",
+    (e) => {
+
+        pointers.delete(
+            e.pointerId
+        );
+
+
+        if (pointers.size < 2) {
+
+            previousDistance =
+                null;
+        }
+
+
+        try {
+
+            scene.releasePointerCapture(
+                e.pointerId
+            );
+
+        } catch {}
+
+    }
+);
+
+
+// ===============================
+// CANCEL
+// ===============================
+
+scene.addEventListener(
+    "pointercancel",
+    (e) => {
+
+        pointers.delete(
+            e.pointerId
+        );
+
+        previousDistance =
+            null;
+    }
+);
+
+
+// ===============================
+// CHUỘT SCROLL = ZOOM
+// ===============================
 
 scene.addEventListener(
     "wheel",
@@ -383,7 +582,8 @@ scene.addEventListener(
         e.preventDefault();
 
 
-        zoom -= e.deltaY * 0.001;
+        zoom -=
+            e.deltaY * 0.001;
 
 
         updateHeartTransform();
@@ -394,320 +594,223 @@ scene.addEventListener(
     }
 );
 
+
 // ==========================================
-// PINCH ZOOM 2 NGÓN
+// CLICK / CHẠM → BUNG TIM
 // ==========================================
-
-let activePointers = new Map();
-
-let previousDistance = null;
-
-
-scene.addEventListener("pointerdown", (e) => {
-
-    activePointers.set(
-        e.pointerId,
-        {
-            x: e.clientX,
-            y: e.clientY
-        }
-    );
-
-});
-
-
-scene.addEventListener("pointermove", (e) => {
-
-    if (!activePointers.has(e.pointerId)) return;
-
-
-    activePointers.set(
-        e.pointerId,
-        {
-            x: e.clientX,
-            y: e.clientY
-        }
-    );
-
-
-    // Chỉ zoom khi có 2 ngón
-    if (activePointers.size === 2) {
-
-        const points =
-            [...activePointers.values()];
-
-
-        const dx =
-            points[0].x -
-            points[1].x;
-
-
-        const dy =
-            points[0].y -
-            points[1].y;
-
-
-        const distance =
-            Math.sqrt(
-                dx * dx +
-                dy * dy
-            );
-
-
-        if (previousDistance !== null) {
-
-            const difference =
-                distance -
-                previousDistance;
-
-
-            zoom +=
-                difference * 0.003;
-
-
-            updateHeartTransform();
-        }
-
-
-        previousDistance =
-            distance;
-    }
-
-});
-
-
-function removePointer(e) {
-
-    activePointers.delete(
-        e.pointerId
-    );
-
-
-    if (activePointers.size < 2) {
-
-        previousDistance = null;
-
-    }
-
-}
-
 
 scene.addEventListener(
     "pointerup",
-    removePointer
-);
-
-scene.addEventListener(
-    "pointercancel",
-    removePointer
-);
-
-// ===============================
-// CLICK / TOUCH BUNG TIM
-// ===============================
-
-document.addEventListener(
-    "pointerdown",
     (e) => {
 
-        // Không tạo quá nhiều trên điện thoại
-        const totalHearts =
-            isMobile() ? 16 : 28;
-
-
-        const icons = [
-            "❤️",
-            "💖",
-            "💕",
-            "💗",
-            "💘",
-            "💝"
-        ];
-
-
-        for (
-            let i = 0;
-            i < totalHearts;
-            i++
-        ) {
-
-            const particle =
-                document.createElement("div");
-
-
-            particle.className =
-                "click-heart";
-
-
-            particle.innerHTML =
-                icons[
-                    Math.floor(
-                        Math.random() *
-                        icons.length
-                    )
-                ];
-
-
-            // Kích thước
-            const size =
-                isMobile()
-                    ? 16 + Math.random() * 18
-                    : 18 + Math.random() * 24;
-
-
-            particle.style.fontSize =
-                size + "px";
-
-
-            particle.style.left =
-                e.clientX + "px";
-
-            particle.style.top =
-                e.clientY + "px";
-
-
-            document.body.appendChild(
-                particle
-            );
-
-
-            // Góc bay
-            const angle =
-                Math.random() *
-                Math.PI * 2;
-
-
-            // Khoảng cách
-            const distance =
-                isMobile()
-                    ? 60 + Math.random() * 140
-                    : 80 + Math.random() * 220;
-
-
-            const x =
-                Math.cos(angle) *
-                distance;
-
-
-            const y =
-                Math.sin(angle) *
-                distance;
-
-
-            const rotate =
-                Math.random() *
-                720 - 360;
-
-
-            const duration =
-                isMobile()
-                    ? 800 + Math.random() * 500
-                    : 900 + Math.random() * 700;
-
-
-            particle.animate(
-
-                [
-
-                    {
-                        transform:
-                            `
-                            translate(
-                                -50%,
-                                -50%
-                            )
-                            scale(.2)
-                            rotate(0deg)
-                            `,
-
-                        opacity: 1
-                    },
-
-
-                    {
-
-                        offset: .2,
-
-                        transform:
-                            `
-                            translate(
-                                calc(
-                                    -50% +
-                                    ${x * 0.3}px
-                                ),
-
-                                calc(
-                                    -50% +
-                                    ${y * 0.3}px
-                                )
-                            )
-
-                            scale(1.15)
-
-                            rotate(
-                                ${rotate / 2}deg
-                            )
-                            `,
-
-                        opacity: 1
-                    },
-
-
-                    {
-
-                        transform:
-                            `
-                            translate(
-                                calc(
-                                    -50% +
-                                    ${x}px
-                                ),
-
-                                calc(
-                                    -50% +
-                                    ${y}px
-                                )
-                            )
-
-                            scale(.3)
-
-                            rotate(
-                                ${rotate}deg
-                            )
-                            `,
-
-                        opacity: 0
-                    }
-
-                ],
-
-                {
-
-                    duration,
-
-                    easing:
-                        "cubic-bezier(.17,.89,.32,1.25)",
-
-                    fill: "forwards"
-                }
-
-            );
-
-
-            setTimeout(() => {
-
-                particle.remove();
-
-            }, duration);
-
+        // Nếu đang kéo thì KHÔNG bung tim
+        if (moved) {
+            return;
         }
 
-    },
-    {
-        passive: true
+
+        // Nếu vừa dùng 2 ngón thì không bung
+        if (pointers.size > 0) {
+            return;
+        }
+
+
+        createExplosion(
+            e.clientX,
+            e.clientY
+        );
+
     }
 );
 
+
+// ==========================================
+// TẠO TIM BUNG
+// ==========================================
+
+function createExplosion(x, y) {
+
+    const icons = [
+        "❤️",
+        "💖",
+        "💕",
+        "💗",
+        "💘",
+        "💝"
+    ];
+
+
+    const totalHearts =
+        window.innerWidth <= 768
+            ? 16
+            : 28;
+
+
+    for (
+        let i = 0;
+        i < totalHearts;
+        i++
+    ) {
+
+        const particle =
+            document.createElement("div");
+
+
+        particle.className =
+            "click-heart";
+
+
+        particle.innerHTML =
+            icons[
+                Math.floor(
+                    Math.random() *
+                    icons.length
+                )
+            ];
+
+
+        const size =
+            window.innerWidth <= 768
+                ? 16 + Math.random() * 18
+                : 18 + Math.random() * 24;
+
+
+        particle.style.fontSize =
+            size + "px";
+
+
+        particle.style.left =
+            x + "px";
+
+        particle.style.top =
+            y + "px";
+
+
+        document.body.appendChild(
+            particle
+        );
+
+
+        const angle =
+            Math.random() *
+            Math.PI * 2;
+
+
+        const distance =
+            window.innerWidth <= 768
+                ? 60 + Math.random() * 140
+                : 80 + Math.random() * 220;
+
+
+        const endX =
+            Math.cos(angle) *
+            distance;
+
+
+        const endY =
+            Math.sin(angle) *
+            distance;
+
+
+        const rotate =
+            Math.random() *
+            720 - 360;
+
+
+        const duration =
+            window.innerWidth <= 768
+                ? 800 + Math.random() * 500
+                : 900 + Math.random() * 700;
+
+
+        particle.animate(
+
+            [
+
+                {
+                    transform:
+                        `
+                        translate(
+                            -50%,
+                            -50%
+                        )
+                        scale(.2)
+                        rotate(0deg)
+                        `,
+
+                    opacity: 1
+                },
+
+
+                {
+
+                    offset: 0.2,
+
+                    transform:
+                        `
+                        translate(
+                            calc(
+                                -50% +
+                                ${endX * 0.3}px
+                            ),
+                            calc(
+                                -50% +
+                                ${endY * 0.3}px
+                            )
+                        )
+                        scale(1.15)
+                        rotate(
+                            ${rotate / 2}deg
+                        )
+                        `,
+
+                    opacity: 1
+                },
+
+
+                {
+
+                    transform:
+                        `
+                        translate(
+                            calc(
+                                -50% +
+                                ${endX}px
+                            ),
+                            calc(
+                                -50% +
+                                ${endY}px
+                            )
+                        )
+                        scale(.3)
+                        rotate(
+                            ${rotate}deg
+                        )
+                        `,
+
+                    opacity: 0
+                }
+
+            ],
+
+            {
+                duration: duration,
+
+                easing:
+                    "cubic-bezier(.17,.89,.32,1.25)",
+
+                fill: "forwards"
+            }
+        );
+
+
+        setTimeout(
+            () => particle.remove(),
+            duration
+        );
+
+    }
+}
 
 // ===============================
 // KHI XOAY MÀN HÌNH
