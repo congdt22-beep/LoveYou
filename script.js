@@ -258,6 +258,249 @@ function animate() {
 
 animate();
 
+// ==========================================
+// ĐIỀU KHIỂN 3D BẰNG CHUỘT + ĐIỆN THOẠI
+// ==========================================
+
+const scene = document.getElementById("scene");
+const rotator = document.getElementById("heart-rotator");
+
+
+// Góc ban đầu
+let rotationX = 15;
+let rotationY = -20;
+let rotationZ = 3;
+
+
+// Zoom
+let zoom = window.innerWidth <= 768 ? 0.82 : 0.72;
+
+
+// Chuột / ngón tay
+let dragging = false;
+
+let lastX = 0;
+let lastY = 0;
+
+
+// ==========================================
+// CẬP NHẬT TRÁI TIM
+// ==========================================
+
+function updateHeartTransform() {
+
+    // Giới hạn góc nhìn lên xuống
+    rotationX = Math.max(
+        -75,
+        Math.min(75, rotationX)
+    );
+
+
+    // Giới hạn zoom
+    zoom = Math.max(
+        0.35,
+        Math.min(1.5, zoom)
+    );
+
+
+    rotator.style.transform = `
+        rotateX(${rotationX}deg)
+        rotateY(${rotationY}deg)
+        rotateZ(${rotationZ}deg)
+        scale(${zoom})
+    `;
+}
+
+
+// ==========================================
+// CHUỘT
+// ==========================================
+
+scene.addEventListener("pointerdown", (e) => {
+
+    dragging = true;
+
+    lastX = e.clientX;
+    lastY = e.clientY;
+
+    scene.setPointerCapture(e.pointerId);
+});
+
+
+scene.addEventListener("pointermove", (e) => {
+
+    if (!dragging) return;
+
+
+    const dx =
+        e.clientX - lastX;
+
+    const dy =
+        e.clientY - lastY;
+
+
+    // Kéo ngang = xoay trái phải
+    rotationY += dx * 0.45;
+
+
+    // Kéo dọc = nghiêng lên xuống
+    rotationX -= dy * 0.35;
+
+
+    lastX = e.clientX;
+    lastY = e.clientY;
+
+
+    updateHeartTransform();
+});
+
+
+scene.addEventListener("pointerup", (e) => {
+
+    dragging = false;
+
+    try {
+        scene.releasePointerCapture(e.pointerId);
+    } catch {}
+});
+
+
+scene.addEventListener("pointercancel", () => {
+
+    dragging = false;
+
+});
+
+
+// ==========================================
+// CUỘN CHUỘT = ZOOM
+// ==========================================
+
+scene.addEventListener(
+    "wheel",
+    (e) => {
+
+        e.preventDefault();
+
+
+        zoom -= e.deltaY * 0.001;
+
+
+        updateHeartTransform();
+
+    },
+    {
+        passive: false
+    }
+);
+
+// ==========================================
+// PINCH ZOOM 2 NGÓN
+// ==========================================
+
+let activePointers = new Map();
+
+let previousDistance = null;
+
+
+scene.addEventListener("pointerdown", (e) => {
+
+    activePointers.set(
+        e.pointerId,
+        {
+            x: e.clientX,
+            y: e.clientY
+        }
+    );
+
+});
+
+
+scene.addEventListener("pointermove", (e) => {
+
+    if (!activePointers.has(e.pointerId)) return;
+
+
+    activePointers.set(
+        e.pointerId,
+        {
+            x: e.clientX,
+            y: e.clientY
+        }
+    );
+
+
+    // Chỉ zoom khi có 2 ngón
+    if (activePointers.size === 2) {
+
+        const points =
+            [...activePointers.values()];
+
+
+        const dx =
+            points[0].x -
+            points[1].x;
+
+
+        const dy =
+            points[0].y -
+            points[1].y;
+
+
+        const distance =
+            Math.sqrt(
+                dx * dx +
+                dy * dy
+            );
+
+
+        if (previousDistance !== null) {
+
+            const difference =
+                distance -
+                previousDistance;
+
+
+            zoom +=
+                difference * 0.003;
+
+
+            updateHeartTransform();
+        }
+
+
+        previousDistance =
+            distance;
+    }
+
+});
+
+
+function removePointer(e) {
+
+    activePointers.delete(
+        e.pointerId
+    );
+
+
+    if (activePointers.size < 2) {
+
+        previousDistance = null;
+
+    }
+
+}
+
+
+scene.addEventListener(
+    "pointerup",
+    removePointer
+);
+
+scene.addEventListener(
+    "pointercancel",
+    removePointer
+);
 
 // ===============================
 // CLICK / TOUCH BUNG TIM
