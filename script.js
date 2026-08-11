@@ -14,8 +14,8 @@ function heartPoint(t) {
         - Math.cos(4 * t);
 
     return {
-        x: x * 30,
-        y: (-y * 25) + Math.sin(t) * 3
+        x: x * 28,
+        y: (-y * 22) + Math.sin(t) * 3
     };
 }
 
