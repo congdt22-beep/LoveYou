@@ -6,8 +6,8 @@ const text = "Long ❤️ Hoài Thương";
 // THIẾT LẬP
 // ===============================
 
-const total = 80;
-const layers = 1;
+const total = 40;
+const layers = 2;
 const depth = 20;
 
 const words = [];
