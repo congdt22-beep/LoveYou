@@ -1,6 +1,6 @@
 const heart = document.getElementById("heart");
 
-const text = "Long ❤️ Hoài Thương";
+const text = "Công ❤️ Mai";
 
 // ===============================
 // THIẾT LẬP
