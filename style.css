@@ -169,10 +169,10 @@ body {
    ĐIỆN THOẠI
 ========================= */
 
-@media (max-width: 768px) {
+@media (max-width: 968px) {
 
     body {
-        perspective: 1200px;
+        perspective: 1800px;
     }
 
 
@@ -217,7 +217,7 @@ body {
 
     .word {
 
-        font-size: 11px;
+        font-size: 10px;
 
         letter-spacing: 0.4px;
 
@@ -249,7 +249,7 @@ body {
    MÁY TÍNH
 ========================= */
 
-@media (min-width: 769px) {
+@media (min-width: 969px) {
 
     #heart-rotator {
 

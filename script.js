@@ -6,7 +6,7 @@ const text = "Công ❤️ Mai";
 // THIẾT LẬP
 // ===============================
 
-const total = 80;
+const total = 90;
 const layers = 1;
 const depth = 30;
 
@@ -168,11 +168,11 @@ function animate() {
 
         // Điểm trước
         const pPrev =
-            heartPoint(moveT - 0.01);
+            heartPoint(moveT - 0.2);
 
         // Điểm sau
         const pNext =
-            heartPoint(moveT + 0.01);
+            heartPoint(moveT + 0.2);
 
 
         // Hướng chuyển động
@@ -214,7 +214,7 @@ function animate() {
 
         const z =
             baseZ +
-            Math.sin(moveT * 3) * 2;
+            Math.sin(moveT * 3) * 30;
 
 
         // ===========================
@@ -224,7 +224,7 @@ function animate() {
         const alpha =
             1 -
             Math.abs(z) /
-            (layers * depth * 1.5);
+            (layers * depth * 1.8);
 
 
         word.style.opacity =
@@ -246,7 +246,8 @@ function animate() {
 
             rotateY(${isMobile() ? 5 : 12}deg)
 
-            scale(1)
+            scaleX(1.5)
+            ScaleY(1)
         `;
 
     });
