@@ -166,15 +166,14 @@ body {
 
 
 /* =========================
-   ĐIỆN THOẠI
+   ĐIỆN THOẠI / TABLET
 ========================= */
 
 @media (max-width: 968px) {
 
     body {
-        perspective: 1800px;
+        perspective: 1400px;
     }
-
 
     #scene {
         width: 100vw;
@@ -189,7 +188,6 @@ body {
         touch-action: none;
     }
 
-
     #heart-rotator {
 
         width: 100vmin;
@@ -198,13 +196,17 @@ body {
         max-width: none;
         max-height: none;
 
-        transform:
-            rotateX(10deg)
-            rotateY(-15deg)
-            rotateZ(2deg)
-            scale(0.82);
-    }
+        transform-style: preserve-3d;
 
+        /* Nhìn 3D nhưng không bị bẹp */
+        transform:
+            rotateX(7deg)
+            rotateY(-10deg)
+            rotateZ(0deg)
+            scale(0.95);
+
+        will-change: transform;
+    }
 
     #heart {
 
@@ -212,35 +214,36 @@ body {
         height: 100%;
 
         transform-style: preserve-3d;
-    }
 
+        will-change: transform;
+    }
 
     .word {
 
         font-size: 10px;
 
-        letter-spacing: 0.4px;
+        letter-spacing: 0.25px;
 
         font-weight: bold;
 
         white-space: nowrap;
 
-        transform-origin:
-            center center;
+        transform-origin: center center;
 
-        -webkit-font-smoothing:
-            antialiased;
+        -webkit-font-smoothing: antialiased;
 
-        text-rendering:
-            geometricPrecision;
+        text-rendering: geometricPrecision;
+
+        backface-visibility: visible;
     }
-
 
     .click-heart {
 
-        font-size: 24px;
+        font-size: 22px;
 
         z-index: 99999;
+
+        pointer-events: none;
     }
 }
 

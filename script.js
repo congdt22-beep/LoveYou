@@ -8,6 +8,7 @@ const text = "Công ❤️ Mai";
 
 const total = 90;
 const layers = 1;
+const thickness = 6;
 const depth = 30;
 
 const words = [];
@@ -214,7 +215,7 @@ function animate() {
 
         const z =
             baseZ +
-            Math.sin(moveT * 3) * 30;
+            Math.sin(moveT * 3) * 40;
 
 
         // ===========================
